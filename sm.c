@@ -63,6 +63,8 @@ SM_operate_status SM_Execution(SM_instance_t *SM_instance)
             SM_instance->Time.lastExecTick = SM_get_tick();
             SM_instance->Time.DelayTime = 0;
             SM_instance->ActualState->onExec(SM_instance);
+            SM_instance->Stats.StateExecutionCounter++;
+            SM_instance->Stats.MachineExecutionCounter++;
             return SM_OK;
         }
         else return SM_EXEC_DELAYED;
@@ -73,6 +75,17 @@ SM_operate_status SM_Execution(SM_instance_t *SM_instance)
 SM_operate_status SM_Trans(SM_instance_t *SM_instance, SM_transision_mode mode, uint16_t State)
 {
     if(SM_instance->NumberOfStates <= State) return SM_TRANS_ERR;
+    if(SM_instance->SM_control_flags.TransitionLock)
+    {
+    	if(SM_get_tick() - SM_instance->Time.ExecBlockTick >= SM_instance->Time.TransLockTimeout)
+    	{
+    		SM_instance->SM_control_flags.TransitionLock = 0;
+    	}
+    	else
+    	{
+    		return SM_TRANS_LOCKED;
+    	}
+    }
 
     switch(mode)
     {
@@ -109,6 +122,8 @@ SM_operate_status SM_Trans(SM_instance_t *SM_instance, SM_transision_mode mode, 
 
     SM_instance->Time.TransTick = SM_get_tick();
     if(NULL != SM_instance->onTrans) SM_instance->onTrans(SM_instance);
+    SM_instance->Stats.StateExecutionCounter = 0;
+    SM_instance->Stats.TransCounter++;
     return SM_OK;
 }
 
@@ -128,6 +143,22 @@ SM_operate_status SM_exec_break_release(SM_instance_t *SM_instance)
     return SM_OK;
 }
 
+SM_operate_status SM_trans_lock(SM_instance_t *SM_instance, uint32_t Timeout)
+{
+    if(NULL==SM_instance) return SM_OPRT_INSTANCE_DOES_NOT_EXIST;
+    SM_instance->Time.TransLockTick = SM_get_tick();
+    SM_instance->Time.TransLockTimeout = Timeout;
+    SM_instance->SM_control_flags.TransitionLock = 1;
+    return SM_OK;
+}
+
+SM_operate_status SM_trans_lock_release(SM_instance_t *SM_instance)
+{
+    if(NULL==SM_instance) return SM_OPRT_INSTANCE_DOES_NOT_EXIST;
+    SM_instance->SM_control_flags.TransitionLock = 0;
+    return SM_OK;
+}
+
 SM_operate_status SM_exec_delay(SM_instance_t *SM_instance, uint32_t Delay)
 {
     if(NULL==SM_instance) return SM_OPRT_INSTANCE_DOES_NOT_EXIST;
@@ -138,7 +169,6 @@ SM_operate_status SM_exec_delay(SM_instance_t *SM_instance, uint32_t Delay)
 uint16_t SM_get_state_number(SM_instance_t *SM_instance)
 {
     if (!SM_instance || !SM_instance->ActualState) return 0xFFFF;
-//    return SM_instance->ActualState->StateNumber;
 
     return SM_instance->ActualState - SM_instance->SM_states;
 }
@@ -149,3 +179,30 @@ uint32_t SM_get_time_in_state(SM_instance_t *SM_instance)
 
 	return SM_get_tick() - SM_instance->Time.TransTick;
 }
+
+uint32_t SM_get_exec_counter_state(SM_instance_t *SM_instance)
+{
+	if (!SM_instance || !SM_instance->ActualState) return 0xFFFF;
+
+	return SM_instance->Stats.StateExecutionCounter;
+}
+
+uint32_t SM_get_exec_counter_machine(SM_instance_t *SM_instance)
+{
+	if (!SM_instance) return 0xFFFF;
+
+	return SM_instance->Stats.MachineExecutionCounter;
+}
+
+uint32_t SM_get_trans_counter(SM_instance_t *SM_instance)
+{
+	if (!SM_instance) return 0xFFFF;
+
+	return SM_instance->Stats.TransCounter;
+}
+
+
+
+
+
+

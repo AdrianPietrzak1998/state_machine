@@ -13,7 +13,7 @@
 
 #if SM_TICK_FROM_FUNC
 uint32_t (*SM_get_tick)(void);
-#define SM_GET_TICK SM_get_tick()
+#define SM_GET_TICK ((SM_get_tick!=NULL)?SM_get_tick():((uint32_t)0))
 SM_operate_status SM_tick_function_register(uint32_t (*Function)(void))
 {
 	if(NULL==Function) return SM_INIT_ERR;
@@ -21,8 +21,8 @@ SM_operate_status SM_tick_function_register(uint32_t (*Function)(void))
 	return SM_OK;
 }
 #else
-uint32_t *SM_tick;
-#define SM_GET_TICK *SM_tick
+uint32_t *SM_tick = NULL;
+#define SM_GET_TICK (*SM_tick)
 SM_operate_status SM_tick_variable_register(uint32_t *Variable)
 {
 	if(NULL==Variable) return SM_INIT_ERR;
@@ -30,11 +30,11 @@ SM_operate_status SM_tick_variable_register(uint32_t *Variable)
 	return SM_OK;
 }
 #endif
-
-
+#define TICK_IMPLEMENTED SM_GET_TICK != NULL
 
 SM_operate_status SM_init(SM_instance_t *SM_instance, SM_state_t *SM_states, uint16_t FirstState, uint16_t NumberOfStates, void *ctx)
 {
+
     if(NULL == SM_instance || NULL == SM_states || NumberOfStates <= FirstState || 0 == NumberOfStates)
     {
         return SM_INIT_ERR;

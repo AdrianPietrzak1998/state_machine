@@ -11,7 +11,10 @@
 #ifndef SM_CORE_SM_H_
 #define SM_CORE_SM_H_
 
-#include "main.h"
+#include <stdint.h>
+
+#define SM_TICK_FROM_FUNC 0
+
 
 #define SM_MAX_TIMEOUT UINT32_MAX
 
@@ -72,6 +75,11 @@ struct SM_instance_t{
     void *ctx;
 };
 
+#if SM_TICK_FROM_FUNC
+SM_operate_status SM_tick_function_register(uint32_t (*Function)(void));
+#else
+SM_operate_status SM_tick_variable_register(uint32_t *Variable);
+#endif
 
 SM_operate_status SM_init(SM_instance_t *SM_instance, SM_state_t *SM_states, uint16_t FirstState, uint16_t NumberOfStates, void *ctx);
 SM_operate_status SM_onBreakTimeout_callback_register(SM_instance_t *SM_instance, void (*onBreakTimeout)(SM_instance_t *me));

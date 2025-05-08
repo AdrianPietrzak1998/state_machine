@@ -11,10 +11,27 @@
 #include "sm.h"
 #include "string.h"
 
-static uint32_t SM_get_tick(void)
+#if SM_TICK_FROM_FUNC
+uint32_t (*SM_get_tick)(void);
+#define SM_GET_TICK SM_get_tick()
+SM_operate_status SM_tick_function_register(uint32_t (*Function)(void))
 {
-    return uwTick;
+	if(NULL==Function) return SM_INIT_ERR;
+	SM_get_tick = Function;
+	return SM_OK;
 }
+#else
+uint32_t *SM_tick;
+#define SM_GET_TICK *SM_tick
+SM_operate_status SM_tick_variable_register(uint32_t *Variable)
+{
+	if(NULL==Variable) return SM_INIT_ERR;
+	SM_tick = Variable;
+	return SM_OK;
+}
+#endif
+
+
 
 SM_operate_status SM_init(SM_instance_t *SM_instance, SM_state_t *SM_states, uint16_t FirstState, uint16_t NumberOfStates, void *ctx)
 {
@@ -50,7 +67,7 @@ SM_operate_status SM_onTrans_callback_register(SM_instance_t *SM_instance, void 
 
 SM_operate_status SM_Execution(SM_instance_t *SM_instance)
 {
-    if(SM_instance->SM_control_flags.ExecBreak && (SM_get_tick() - SM_instance->Time.ExecBlockTick >= SM_instance->Time.ExecBlockTimeout))
+    if(SM_instance->SM_control_flags.ExecBreak && (SM_GET_TICK - SM_instance->Time.ExecBlockTick >= SM_instance->Time.ExecBlockTimeout))
     {
         SM_instance->SM_control_flags.ExecBreak = 0;
         if(NULL != SM_instance->onBreakTimeout) SM_instance->onBreakTimeout(SM_instance);
@@ -59,10 +76,10 @@ SM_operate_status SM_Execution(SM_instance_t *SM_instance)
     if(NULL != SM_instance->ActualState->onExec)
     {
         if(((0 == SM_instance->Time.DelayTime) ||
-        (SM_get_tick()-SM_instance->Time.lastExecTick >= SM_instance->Time.DelayTime)) &&
+        (SM_GET_TICK-SM_instance->Time.lastExecTick >= SM_instance->Time.DelayTime)) &&
         !SM_instance->SM_control_flags.ExecBreak)
         {
-            SM_instance->Time.lastExecTick = SM_get_tick();
+            SM_instance->Time.lastExecTick = SM_GET_TICK;
             SM_instance->Time.DelayTime = 0;
             SM_instance->ActualState->onExec(SM_instance);
             SM_instance->Stats.StateExecutionCounter++;
@@ -79,7 +96,7 @@ SM_operate_status SM_Trans(SM_instance_t *SM_instance, SM_transision_mode mode, 
     if(SM_instance->NumberOfStates <= State) return SM_TRANS_ERR;
     if(SM_instance->SM_control_flags.TransitionLock)
     {
-    	if(SM_get_tick() - SM_instance->Time.ExecBlockTick >= SM_instance->Time.TransLockTimeout)
+    	if(SM_GET_TICK - SM_instance->Time.ExecBlockTick >= SM_instance->Time.TransLockTimeout)
     	{
     		SM_instance->SM_control_flags.TransitionLock = 0;
     	}
@@ -122,7 +139,7 @@ SM_operate_status SM_Trans(SM_instance_t *SM_instance, SM_transision_mode mode, 
         break;
     }
 
-    SM_instance->Time.TransTick = SM_get_tick();
+    SM_instance->Time.TransTick = SM_GET_TICK;
     if(NULL != SM_instance->onTrans) SM_instance->onTrans(SM_instance);
     SM_instance->Stats.StateExecutionCounter = 0;
     SM_instance->Stats.TransCounter++;
@@ -132,7 +149,7 @@ SM_operate_status SM_Trans(SM_instance_t *SM_instance, SM_transision_mode mode, 
 SM_operate_status SM_exec_break(SM_instance_t *SM_instance, uint32_t Timeout)
 {
     if(NULL==SM_instance) return SM_OPRT_INSTANCE_DOES_NOT_EXIST;
-    SM_instance->Time.ExecBlockTick = SM_get_tick();
+    SM_instance->Time.ExecBlockTick = SM_GET_TICK;
     SM_instance->Time.ExecBlockTimeout = Timeout;
     SM_instance->SM_control_flags.ExecBreak = 1;
     return SM_OK;
@@ -148,7 +165,7 @@ SM_operate_status SM_exec_break_release(SM_instance_t *SM_instance)
 SM_operate_status SM_trans_lock(SM_instance_t *SM_instance, uint32_t Timeout)
 {
     if(NULL==SM_instance) return SM_OPRT_INSTANCE_DOES_NOT_EXIST;
-    SM_instance->Time.TransLockTick = SM_get_tick();
+    SM_instance->Time.TransLockTick = SM_GET_TICK;
     SM_instance->Time.TransLockTimeout = Timeout;
     SM_instance->SM_control_flags.TransitionLock = 1;
     return SM_OK;
@@ -179,7 +196,7 @@ uint32_t SM_get_time_in_state(SM_instance_t *SM_instance)
 {
 	if (!SM_instance || !SM_instance->ActualState) return 0xFFFF;
 
-	return SM_get_tick() - SM_instance->Time.TransTick;
+	return SM_GET_TICK - SM_instance->Time.TransTick;
 }
 
 uint32_t SM_get_exec_counter_state(SM_instance_t *SM_instance)

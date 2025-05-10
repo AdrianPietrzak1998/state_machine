@@ -15,8 +15,28 @@
 
 #define SM_TICK_FROM_FUNC 0
 
-#define SM_TIME_t uint32_t
+
+
+#ifndef SM_TIME_BASE_TYPE_CUSTOM
 #define SM_MAX_TIMEOUT UINT32_MAX
+typedef volatile uint32_t SM_TIME_t;
+#else
+
+#define MAX_OF_TYPE(type) \
+    _Generic((type)0, \
+        int8_t: INT8_MAX, \
+        uint8_t: UINT8_MAX, \
+        int16_t: INT16_MAX, \
+        uint16_t: UINT16_MAX, \
+        int32_t: INT32_MAX, \
+        uint32_t: UINT32_MAX, \
+        int64_t: INT64_MAX, \
+        uint64_t: UINT64_MAX, \
+        default: 0)
+
+#define SM_MAX_TIMEOUT MAX_OF_TYPE(SM_TIME_BASE_TYPE_CUSTOM)
+typedef SM_TIME_BASE_TYPE_CUSTOM SM_TIME_t;
+#endif
 
 typedef enum{
     SM_OK = 0,

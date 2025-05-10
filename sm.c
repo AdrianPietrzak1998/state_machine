@@ -12,18 +12,18 @@
 #include "string.h"
 
 #if SM_TICK_FROM_FUNC
-uint32_t (*SM_get_tick)(void);
-#define SM_GET_TICK ((SM_get_tick!=NULL)?SM_get_tick():((uint32_t)0))
-SM_operate_status SM_tick_function_register(uint32_t (*Function)(void))
+SM_TIME_t (*SM_get_tick)(void);
+#define SM_GET_TICK ((SM_get_tick!=NULL)?SM_get_tick():((SM_TIME_t)0))
+SM_operate_status SM_tick_function_register(SM_TIME_t (*Function)(void))
 {
 	if(NULL==Function) return SM_INIT_ERR;
 	SM_get_tick = Function;
 	return SM_OK;
 }
 #else
-uint32_t *SM_tick = NULL;
+SM_TIME_t *SM_tick = NULL;
 #define SM_GET_TICK (*SM_tick)
-SM_operate_status SM_tick_variable_register(uint32_t *Variable)
+SM_operate_status SM_tick_variable_register(SM_TIME_t *Variable)
 {
 	if(NULL==Variable) return SM_INIT_ERR;
 	SM_tick = Variable;
@@ -146,7 +146,7 @@ SM_operate_status SM_Trans(SM_instance_t *SM_instance, SM_transision_mode mode, 
     return SM_OK;
 }
 
-SM_operate_status SM_exec_break(SM_instance_t *SM_instance, uint32_t Timeout)
+SM_operate_status SM_exec_break(SM_instance_t *SM_instance, SM_TIME_t Timeout)
 {
     if(NULL==SM_instance) return SM_OPRT_INSTANCE_DOES_NOT_EXIST;
     SM_instance->Time.ExecBlockTick = SM_GET_TICK;
@@ -162,7 +162,7 @@ SM_operate_status SM_exec_break_release(SM_instance_t *SM_instance)
     return SM_OK;
 }
 
-SM_operate_status SM_trans_lock(SM_instance_t *SM_instance, uint32_t Timeout)
+SM_operate_status SM_trans_lock(SM_instance_t *SM_instance, SM_TIME_t Timeout)
 {
     if(NULL==SM_instance) return SM_OPRT_INSTANCE_DOES_NOT_EXIST;
     SM_instance->Time.TransLockTick = SM_GET_TICK;
@@ -178,7 +178,7 @@ SM_operate_status SM_trans_lock_release(SM_instance_t *SM_instance)
     return SM_OK;
 }
 
-SM_operate_status SM_exec_delay(SM_instance_t *SM_instance, uint32_t Delay)
+SM_operate_status SM_exec_delay(SM_instance_t *SM_instance, SM_TIME_t Delay)
 {
     if(NULL==SM_instance) return SM_OPRT_INSTANCE_DOES_NOT_EXIST;
     SM_instance->Time.DelayTime = Delay;
@@ -192,7 +192,7 @@ uint16_t SM_get_state_number(SM_instance_t *SM_instance)
     return SM_instance->ActualState - SM_instance->SM_states;
 }
 
-uint32_t SM_get_time_in_state(SM_instance_t *SM_instance)
+SM_TIME_t SM_get_time_in_state(SM_instance_t *SM_instance)
 {
 	if (!SM_instance || !SM_instance->ActualState) return 0xFFFF;
 

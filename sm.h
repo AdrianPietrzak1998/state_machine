@@ -15,7 +15,7 @@
 
 #define SM_TICK_FROM_FUNC 0
 
-
+#define SM_TIME_t uint32_t
 #define SM_MAX_TIMEOUT UINT32_MAX
 
 typedef enum{
@@ -38,13 +38,13 @@ typedef enum{
 typedef struct SM_instance_t SM_instance_t;
 
 typedef struct{
-    uint32_t TransTick;
-    uint32_t lastExecTick;
-    uint32_t ExecBlockTick;
-    uint32_t TransLockTick;
-    uint32_t DelayTime;
-    uint32_t ExecBlockTimeout;
-    uint32_t TransLockTimeout;
+	SM_TIME_t TransTick;
+	SM_TIME_t lastExecTick;
+	SM_TIME_t ExecBlockTick;
+	SM_TIME_t TransLockTick;
+	SM_TIME_t DelayTime;
+	SM_TIME_t ExecBlockTimeout;
+	SM_TIME_t TransLockTimeout;
 }SM_timestamp_t;
 
 typedef struct{
@@ -76,9 +76,9 @@ struct SM_instance_t{
 };
 
 #if SM_TICK_FROM_FUNC
-SM_operate_status SM_tick_function_register(uint32_t (*Function)(void));
+SM_operate_status SM_tick_function_register(SM_TIME_t (*Function)(void));
 #else
-SM_operate_status SM_tick_variable_register(uint32_t *Variable);
+SM_operate_status SM_tick_variable_register(SM_TIME_t *Variable);
 #endif
 
 SM_operate_status SM_init(SM_instance_t *SM_instance, SM_state_t *SM_states, uint16_t FirstState, uint16_t NumberOfStates, void *ctx);
@@ -86,13 +86,13 @@ SM_operate_status SM_onBreakTimeout_callback_register(SM_instance_t *SM_instance
 SM_operate_status SM_onTrans_callback_register(SM_instance_t *SM_instance, void (*onTrans)(SM_instance_t *me));
 SM_operate_status SM_Execution(SM_instance_t *SM_instance);
 SM_operate_status SM_Trans(SM_instance_t *SM_instance, SM_transision_mode mode, uint16_t State);
-SM_operate_status SM_exec_break(SM_instance_t *SM_instance, uint32_t Timeout);
+SM_operate_status SM_exec_break(SM_instance_t *SM_instance, SM_TIME_t Timeout);
 SM_operate_status SM_exec_break_release(SM_instance_t *SM_instance);
-SM_operate_status SM_trans_lock(SM_instance_t *SM_instance, uint32_t Timeout);
+SM_operate_status SM_trans_lock(SM_instance_t *SM_instance, SM_TIME_t Timeout);
 SM_operate_status SM_trans_lock_release(SM_instance_t *SM_instance);
-SM_operate_status SM_exec_delay(SM_instance_t *SM_instance, uint32_t Delay);
+SM_operate_status SM_exec_delay(SM_instance_t *SM_instance, SM_TIME_t Delay);
 uint16_t SM_get_state_number(SM_instance_t *SM_instance);
-uint32_t SM_get_time_in_state(SM_instance_t *SM_instance);
+SM_TIME_t SM_get_time_in_state(SM_instance_t *SM_instance);
 uint32_t SM_get_exec_counter_state(SM_instance_t *SM_instance);
 uint32_t SM_get_exec_counter_machine(SM_instance_t *SM_instance);
 uint32_t SM_get_trans_counter(SM_instance_t *SM_instance);

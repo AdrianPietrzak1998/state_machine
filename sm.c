@@ -12,7 +12,7 @@
 #include "string.h"
 
 #if SM_TICK_FROM_FUNC
-SM_TIME_t (*SM_get_tick)(void);
+SM_TIME_t (*SM_get_tick)(void) = NULL;
 #define SM_GET_TICK ((SM_get_tick!=NULL)?SM_get_tick():((SM_TIME_t)0))
 SM_operate_status SM_tick_function_register(SM_TIME_t (*Function)(void))
 {

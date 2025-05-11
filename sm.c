@@ -30,7 +30,6 @@ SM_operate_status SM_tick_variable_register(SM_TIME_t *Variable)
 	return SM_OK;
 }
 #endif
-#define TICK_IMPLEMENTED SM_GET_TICK != NULL
 
 SM_operate_status SM_init(SM_instance_t *SM_instance, SM_state_t *SM_states, uint16_t FirstState, uint16_t NumberOfStates, void *ctx)
 {

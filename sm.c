@@ -9,7 +9,7 @@
  */
 
 #include "sm.h"
-#include "string.h"
+#include <stddef.h>
 
 #if SM_TICK_FROM_FUNC
 
@@ -33,6 +33,52 @@ SM_operate_status SM_tick_function_register(SM_TIME_t (*Function)(void))
 SM_TIME_t *SM_tick = NULL;
 
 #define SM_GET_TICK    (*(SM_tick))
+
+static SM_operate_status SM_reset_instance(SM_instance_t *SM_instance)
+{
+	if (NULL == SM_instance)
+	{
+		return SM_OPRT_INSTANCE_DOES_NOT_EXIST;
+	}
+
+	SM_instance->SM_states = NULL;
+	SM_instance->ActualState = NULL;
+	SM_instance->PrevState = NULL;
+	SM_instance->NumberOfStates = 0;
+
+	SM_instance->Time.TransTick = 0;
+	SM_instance->Time.lastExecTick = 0;
+	SM_instance->Time.ExecBlockTick = 0;
+	SM_instance->Time.TransLockTick = 0;
+	SM_instance->Time.DelayTime = 0;
+	SM_instance->Time.ExecBlockTimeout = 0;
+	SM_instance->Time.TransLockTimeout = 0;
+	SM_instance->SM_control_flags.ExecBreak = 0;
+	SM_instance->SM_control_flags.TransitionLock = 0;
+	SM_instance->Stats.StateExecutionCounter = 0;
+	SM_instance->Stats.MachineExecutionCounter = 0;
+	SM_instance->Stats.TransCounter = 0;
+
+	SM_instance->onBreakTimeout = NULL;
+	SM_instance->onTrans = NULL;
+
+	SM_instance->ctx = NULL;
+
+	return SM_OK;
+}
+
+static SM_operate_status SM_state_is_in_range(SM_instance_t *SM_instance, SM_state_t *SM_state)
+{
+	if (SM_state >= SM_instance->SM_states &&
+	    SM_state <  SM_instance->SM_states + SM_instance->NumberOfStates)
+	{
+		return SM_OK;
+	}
+	else
+	{
+		return SM_WRONG_STATE;
+	}
+}
 
 SM_operate_status SM_tick_variable_register(SM_TIME_t *Variable)
 {
@@ -61,7 +107,10 @@ SM_operate_status SM_init(SM_instance_t *SM_instance,
         return SM_INIT_ERR;
     }
 
-    memset(SM_instance, 0x00, sizeof(SM_instance_t));
+    if (SM_reset_instance(SM_instance) != SM_OK)
+    {
+    	return SM_INIT_ERR;
+    }
     SM_instance->SM_states = SM_states;
     SM_instance->ActualState = &SM_states[FirstState];
     SM_instance->NumberOfStates = NumberOfStates;
@@ -113,6 +162,10 @@ SM_operate_status SM_Execution(SM_instance_t *SM_instance)
              (SM_GET_TICK - SM_instance->Time.lastExecTick >= SM_instance->Time.DelayTime)) &&
             !SM_instance->SM_control_flags.ExecBreak)
         {
+        	if (SM_state_is_in_range(SM_instance, SM_instance->ActualState) != SM_OK)
+        	{
+        		return SM_WRONG_STATE;
+        	}
             SM_instance->Time.lastExecTick = SM_GET_TICK;
             SM_instance->Time.DelayTime = 0;
             SM_instance->ActualState->onExec(SM_instance);
@@ -285,7 +338,7 @@ SM_operate_status SM_exec_delay(SM_instance_t *SM_instance, SM_TIME_t Delay)
     return SM_OK;
 }
 
-uint16_t SM_get_state_number(SM_instance_t *SM_instance)
+uint16_t SM_get_state_number(const SM_instance_t *SM_instance)
 {
     if ((SM_instance == NULL) || (SM_instance->ActualState == NULL))
     {
@@ -295,7 +348,7 @@ uint16_t SM_get_state_number(SM_instance_t *SM_instance)
     return (uint16_t)(SM_instance->ActualState - SM_instance->SM_states);
 }
 
-SM_TIME_t SM_get_time_in_state(SM_instance_t *SM_instance)
+SM_TIME_t SM_get_time_in_state(const SM_instance_t *SM_instance)
 {
     if ((SM_instance == NULL) || (SM_instance->ActualState == NULL))
     {
@@ -305,7 +358,7 @@ SM_TIME_t SM_get_time_in_state(SM_instance_t *SM_instance)
     return (SM_GET_TICK - SM_instance->Time.TransTick);
 }
 
-uint32_t SM_get_exec_counter_state(SM_instance_t *SM_instance)
+uint32_t SM_get_exec_counter_state(const SM_instance_t *SM_instance)
 {
     if ((SM_instance == NULL) || (SM_instance->ActualState == NULL))
     {
@@ -315,7 +368,7 @@ uint32_t SM_get_exec_counter_state(SM_instance_t *SM_instance)
     return SM_instance->Stats.StateExecutionCounter;
 }
 
-uint32_t SM_get_exec_counter_machine(SM_instance_t *SM_instance)
+uint32_t SM_get_exec_counter_machine(const SM_instance_t *SM_instance)
 {
     if (SM_instance == NULL)
     {
@@ -325,7 +378,7 @@ uint32_t SM_get_exec_counter_machine(SM_instance_t *SM_instance)
     return SM_instance->Stats.MachineExecutionCounter;
 }
 
-uint32_t SM_get_trans_counter(SM_instance_t *SM_instance)
+uint32_t SM_get_trans_counter(const SM_instance_t *SM_instance)
 {
     if (SM_instance == NULL)
     {

@@ -12,6 +12,7 @@
 #define SM_CORE_SM_H_
 
 #include <stdint.h>
+#include <limits.h>
 
 #define SM_TICK_FROM_FUNC 0
 
@@ -47,7 +48,8 @@ typedef enum
     SM_EXEC_DELAYED,
     SM_EXEC_NULL_PTR,
     SM_TRANS_ERR,
-    SM_TRANS_LOCKED
+    SM_TRANS_LOCKED,
+	SM_WRONG_STATE
 } SM_operate_status;
 
 typedef enum
@@ -80,8 +82,8 @@ typedef struct
 
 typedef struct
 {
-    uint32_t ExecBreak : 1;
-    uint32_t TransitionLock : 1;
+    unsigned int ExecBreak : 1;
+    unsigned int TransitionLock : 1;
 } SM_control_flags_t;
 
 typedef struct
@@ -132,10 +134,10 @@ SM_operate_status SM_onBreakTimeout_callback_register(SM_instance_t *SM_instance
 SM_operate_status SM_onTrans_callback_register(SM_instance_t *SM_instance, void (*onTrans)(SM_instance_t *me));
 
 // Introspection
-uint16_t    SM_get_state_number(SM_instance_t *SM_instance);
-SM_TIME_t   SM_get_time_in_state(SM_instance_t *SM_instance);
-uint32_t    SM_get_exec_counter_state(SM_instance_t *SM_instance);
-uint32_t    SM_get_exec_counter_machine(SM_instance_t *SM_instance);
-uint32_t    SM_get_trans_counter(SM_instance_t *SM_instance);
+uint16_t    SM_get_state_number(const SM_instance_t *SM_instance);
+SM_TIME_t   SM_get_time_in_state(const SM_instance_t *SM_instance);
+uint32_t    SM_get_exec_counter_state(const SM_instance_t *SM_instance);
+uint32_t    SM_get_exec_counter_machine(const SM_instance_t *SM_instance);
+uint32_t    SM_get_trans_counter(const SM_instance_t *SM_instance);
 
 #endif /* SM_CORE_SM_H_ */

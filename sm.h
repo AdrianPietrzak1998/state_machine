@@ -16,6 +16,9 @@
 
 #define SM_TICK_FROM_FUNC 0
 
+#define SM_TIME_BASE_TYPE_CUSTOM volatile uint32_t
+#define SM_TIME_BASE_TYPE_CUSTOM_IS_UINT32
+
 #ifndef SM_TIME_BASE_TYPE_CUSTOM
 
     #define SM_MAX_TIMEOUT UINT32_MAX
@@ -23,20 +26,27 @@
 
 #else
 
-    #define MAX_OF_TYPE(type)                       \
-        _Generic((type)0,                           \
-            int8_t: INT8_MAX,                       \
-            uint8_t: UINT8_MAX,                     \
-            int16_t: INT16_MAX,                     \
-            uint16_t: UINT16_MAX,                   \
-            int32_t: INT32_MAX,                     \
-            uint32_t: UINT32_MAX,                   \
-            int64_t: INT64_MAX,                     \
-            uint64_t: UINT64_MAX,                   \
-            default: 0)
-
-    #define SM_MAX_TIMEOUT MAX_OF_TYPE(SM_TIME_BASE_TYPE_CUSTOM)
     typedef SM_TIME_BASE_TYPE_CUSTOM SM_TIME_t;
+
+    #if defined(SM_TIME_BASE_TYPE_CUSTOM_IS_UINT8)
+        #define SM_MAX_TIMEOUT UINT8_MAX
+    #elif defined(SM_TIME_BASE_TYPE_CUSTOM_IS_UINT16)
+        #define SM_MAX_TIMEOUT UINT16_MAX
+    #elif defined(SM_TIME_BASE_TYPE_CUSTOM_IS_UINT32)
+        #define SM_MAX_TIMEOUT UINT32_MAX
+    #elif defined(SM_TIME_BASE_TYPE_CUSTOM_IS_UINT64)
+        #define SM_MAX_TIMEOUT UINT64_MAX
+    #elif defined(SM_TIME_BASE_TYPE_CUSTOM_IS_INT8)
+        #define SM_MAX_TIMEOUT INT8_MAX
+    #elif defined(SM_TIME_BASE_TYPE_CUSTOM_IS_INT16)
+        #define SM_MAX_TIMEOUT INT16_MAX
+    #elif defined(SM_TIME_BASE_TYPE_CUSTOM_IS_INT32)
+        #define SM_MAX_TIMEOUT INT32_MAX
+    #elif defined(SM_TIME_BASE_TYPE_CUSTOM_IS_INT64)
+        #define SM_MAX_TIMEOUT INT64_MAX
+    #else
+        #error "SM_MAX_TIMEOUT: Unknown SM_TIME_BASE_TYPE_CUSTOM or missing _IS_* define"
+    #endif
 
 #endif
 

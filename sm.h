@@ -16,8 +16,6 @@
 
 #define SM_TICK_FROM_FUNC 0
 
-#define SM_TIME_BASE_TYPE_CUSTOM volatile uint32_t
-#define SM_TIME_BASE_TYPE_CUSTOM_IS_UINT32
 
 #ifndef SM_TIME_BASE_TYPE_CUSTOM
 

@@ -10,6 +10,7 @@
 
 #include "sm.h"
 #include <stddef.h>
+#include "assert.h"
 
 #if SM_TICK_FROM_FUNC
 
@@ -34,12 +35,23 @@ SM_TIME_t *SM_tick = NULL;
 
 #define SM_GET_TICK    (*(SM_tick))
 
+SM_operate_status SM_tick_variable_register(SM_TIME_t *Variable)
+{
+    if (Variable == NULL)
+    {
+        return SM_INIT_ERR;
+    }
+
+    SM_tick = Variable;
+    return SM_OK;
+}
+
+#endif
+
 static SM_operate_status SM_reset_instance(SM_instance_t *SM_instance)
 {
-	if (NULL == SM_instance)
-	{
-		return SM_OPRT_INSTANCE_DOES_NOT_EXIST;
-	}
+
+	assert(SM_instance != NULL);
 
 	SM_instance->SM_states = NULL;
 	SM_instance->ActualState = NULL;
@@ -79,19 +91,6 @@ static SM_operate_status SM_state_is_in_range(SM_instance_t *SM_instance, SM_sta
 		return SM_WRONG_STATE;
 	}
 }
-
-SM_operate_status SM_tick_variable_register(SM_TIME_t *Variable)
-{
-    if (Variable == NULL)
-    {
-        return SM_INIT_ERR;
-    }
-
-    SM_tick = Variable;
-    return SM_OK;
-}
-
-#endif
 
 SM_operate_status SM_init(SM_instance_t *SM_instance,
                           SM_state_t *SM_states,

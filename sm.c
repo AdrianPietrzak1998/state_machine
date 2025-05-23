@@ -9,14 +9,14 @@
  */
 
 #include "sm.h"
-#include <stddef.h>
 #include "assert.h"
+#include <stddef.h>
 
 #if SM_TICK_FROM_FUNC
 
 SM_TIME_t (*SM_get_tick)(void) = NULL;
 
-#define SM_GET_TICK    ((SM_get_tick != NULL) ? SM_get_tick() : ((SM_TIME_t)0))
+#define SM_GET_TICK ((SM_get_tick != NULL) ? SM_get_tick() : ((SM_TIME_t)0))
 
 SM_operate_status SM_tick_function_register(SM_TIME_t (*Function)(void))
 {
@@ -33,7 +33,7 @@ SM_operate_status SM_tick_function_register(SM_TIME_t (*Function)(void))
 
 SM_TIME_t *SM_tick = NULL;
 
-#define SM_GET_TICK    (*(SM_tick))
+#define SM_GET_TICK (*(SM_tick))
 
 SM_operate_status SM_tick_variable_register(SM_TIME_t *Variable)
 {
@@ -51,64 +51,57 @@ SM_operate_status SM_tick_variable_register(SM_TIME_t *Variable)
 static SM_operate_status SM_reset_instance(SM_instance_t *SM_instance)
 {
 
-	assert(SM_instance != NULL);
+    assert(SM_instance != NULL);
 
-	SM_instance->SM_states = NULL;
-	SM_instance->ActualState = NULL;
-	SM_instance->PrevState = NULL;
-	SM_instance->NumberOfStates = 0;
+    SM_instance->SM_states = NULL;
+    SM_instance->ActualState = NULL;
+    SM_instance->PrevState = NULL;
+    SM_instance->NumberOfStates = 0;
 
-	SM_instance->Time.TransTick = 0;
-	SM_instance->Time.lastExecTick = 0;
-	SM_instance->Time.ExecBlockTick = 0;
-	SM_instance->Time.TransLockTick = 0;
-	SM_instance->Time.DelayTime = 0;
-	SM_instance->Time.ExecBlockTimeout = 0;
-	SM_instance->Time.TransLockTimeout = 0;
-	SM_instance->SM_control_flags.ExecBreak = 0;
-	SM_instance->SM_control_flags.TransitionLock = 0;
-	SM_instance->Stats.StateExecutionCounter = 0;
-	SM_instance->Stats.MachineExecutionCounter = 0;
-	SM_instance->Stats.TransCounter = 0;
+    SM_instance->Time.TransTick = 0;
+    SM_instance->Time.lastExecTick = 0;
+    SM_instance->Time.ExecBlockTick = 0;
+    SM_instance->Time.TransLockTick = 0;
+    SM_instance->Time.DelayTime = 0;
+    SM_instance->Time.ExecBlockTimeout = 0;
+    SM_instance->Time.TransLockTimeout = 0;
+    SM_instance->SM_control_flags.ExecBreak = 0;
+    SM_instance->SM_control_flags.TransitionLock = 0;
+    SM_instance->Stats.StateExecutionCounter = 0;
+    SM_instance->Stats.MachineExecutionCounter = 0;
+    SM_instance->Stats.TransCounter = 0;
 
-	SM_instance->onBreakTimeout = NULL;
-	SM_instance->onTrans = NULL;
+    SM_instance->onBreakTimeout = NULL;
+    SM_instance->onTrans = NULL;
 
-	SM_instance->ctx = NULL;
+    SM_instance->ctx = NULL;
 
-	return SM_OK;
+    return SM_OK;
 }
 
 static SM_operate_status SM_state_is_in_range(SM_instance_t *SM_instance, SM_state_t *SM_state)
 {
-	if (SM_state >= SM_instance->SM_states &&
-	    SM_state <  SM_instance->SM_states + SM_instance->NumberOfStates)
-	{
-		return SM_OK;
-	}
-	else
-	{
-		return SM_WRONG_STATE;
-	}
+    if (SM_state >= SM_instance->SM_states && SM_state < SM_instance->SM_states + SM_instance->NumberOfStates)
+    {
+        return SM_OK;
+    }
+    else
+    {
+        return SM_WRONG_STATE;
+    }
 }
 
-SM_operate_status SM_init(SM_instance_t *SM_instance,
-                          SM_state_t *SM_states,
-                          uint16_t FirstState,
-                          uint16_t NumberOfStates,
-                          void *ctx)
+SM_operate_status SM_init(SM_instance_t *SM_instance, SM_state_t *SM_states, uint16_t FirstState,
+                          uint16_t NumberOfStates, void *ctx)
 {
-    if ((SM_instance == NULL) ||
-        (SM_states == NULL) ||
-        (NumberOfStates <= FirstState) ||
-        (NumberOfStates == 0))
+    if ((SM_instance == NULL) || (SM_states == NULL) || (NumberOfStates <= FirstState) || (NumberOfStates == 0))
     {
         return SM_INIT_ERR;
     }
 
     if (SM_reset_instance(SM_instance) != SM_OK)
     {
-    	return SM_INIT_ERR;
+        return SM_INIT_ERR;
     }
     SM_instance->SM_states = SM_states;
     SM_instance->ActualState = &SM_states[FirstState];
@@ -130,8 +123,7 @@ SM_operate_status SM_onBreakTimeout_callback_register(SM_instance_t *SM_instance
     return SM_OK;
 }
 
-SM_operate_status SM_onTrans_callback_register(SM_instance_t *SM_instance,
-                                               void (*onTrans)(SM_instance_t *me))
+SM_operate_status SM_onTrans_callback_register(SM_instance_t *SM_instance, void (*onTrans)(SM_instance_t *me))
 {
     if (SM_instance == NULL)
     {
@@ -161,10 +153,10 @@ SM_operate_status SM_Execution(SM_instance_t *SM_instance)
              (SM_GET_TICK - SM_instance->Time.lastExecTick >= SM_instance->Time.DelayTime)) &&
             !SM_instance->SM_control_flags.ExecBreak)
         {
-        	if (SM_state_is_in_range(SM_instance, SM_instance->ActualState) != SM_OK)
-        	{
-        		return SM_WRONG_STATE;
-        	}
+            if (SM_state_is_in_range(SM_instance, SM_instance->ActualState) != SM_OK)
+            {
+                return SM_WRONG_STATE;
+            }
             SM_instance->Time.lastExecTick = SM_GET_TICK;
             SM_instance->Time.DelayTime = 0;
             SM_instance->ActualState->onExec(SM_instance);
@@ -204,63 +196,58 @@ SM_operate_status SM_Trans(SM_instance_t *SM_instance, SM_transision_mode mode, 
 
     switch (mode)
     {
-        case SM_TRANS_ENTRY_EXIT:
+    case SM_TRANS_ENTRY_EXIT: {
+        if ((SM_instance->ActualState->onExit != NULL) || (SM_instance->ActualState->onEntry != NULL))
         {
-            if ((SM_instance->ActualState->onExit != NULL) || (SM_instance->ActualState->onEntry != NULL))
-            {
-                SM_instance->ActualState->onExit(SM_instance);
-            }
-            else
-            {
-                return SM_TRANS_ERR;
-            }
-
-            SM_instance->PrevState = SM_instance->ActualState;
-            SM_instance->ActualState = &SM_instance->SM_states[State];
-            SM_instance->ActualState->onEntry(SM_instance);
-            break;
+            SM_instance->ActualState->onExit(SM_instance);
         }
-
-        case SM_TRANS_ENTRY:
-        {
-            if (SM_instance->ActualState->onEntry == NULL)
-            {
-                return SM_TRANS_ERR;
-            }
-
-            SM_instance->PrevState = SM_instance->ActualState;
-            SM_instance->ActualState = &SM_instance->SM_states[State];
-            SM_instance->ActualState->onEntry(SM_instance);
-            break;
-        }
-
-        case SM_TRANS_EXIT:
-        {
-            if (SM_instance->ActualState->onExit != NULL)
-            {
-                SM_instance->ActualState->onExit(SM_instance);
-            }
-            else
-            {
-                return SM_TRANS_ERR;
-            }
-
-            SM_instance->PrevState = SM_instance->ActualState;
-            SM_instance->ActualState = &SM_instance->SM_states[State];
-            break;
-        }
-
-        case SM_TRANS_FAST:
-        {
-            SM_instance->PrevState = SM_instance->ActualState;
-            SM_instance->ActualState = &SM_instance->SM_states[State];
-            break;
-        }
-
-        default:
+        else
         {
             return SM_TRANS_ERR;
         }
+
+        SM_instance->PrevState = SM_instance->ActualState;
+        SM_instance->ActualState = &SM_instance->SM_states[State];
+        SM_instance->ActualState->onEntry(SM_instance);
+        break;
+    }
+
+    case SM_TRANS_ENTRY: {
+        if (SM_instance->ActualState->onEntry == NULL)
+        {
+            return SM_TRANS_ERR;
+        }
+
+        SM_instance->PrevState = SM_instance->ActualState;
+        SM_instance->ActualState = &SM_instance->SM_states[State];
+        SM_instance->ActualState->onEntry(SM_instance);
+        break;
+    }
+
+    case SM_TRANS_EXIT: {
+        if (SM_instance->ActualState->onExit != NULL)
+        {
+            SM_instance->ActualState->onExit(SM_instance);
+        }
+        else
+        {
+            return SM_TRANS_ERR;
+        }
+
+        SM_instance->PrevState = SM_instance->ActualState;
+        SM_instance->ActualState = &SM_instance->SM_states[State];
+        break;
+    }
+
+    case SM_TRANS_FAST: {
+        SM_instance->PrevState = SM_instance->ActualState;
+        SM_instance->ActualState = &SM_instance->SM_states[State];
+        break;
+    }
+
+    default: {
+        return SM_TRANS_ERR;
+    }
     }
 
     SM_instance->Time.TransTick = SM_GET_TICK;
@@ -386,4 +373,3 @@ uint32_t SM_get_trans_counter(const SM_instance_t *SM_instance)
 
     return SM_instance->Stats.TransCounter;
 }
-

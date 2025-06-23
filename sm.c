@@ -143,6 +143,11 @@ SM_operate_status SM_init(SM_instance_t *SM_instance, SM_state_t *SM_states, uin
     SM_instance->NumberOfStates = NumberOfStates;
     SM_instance->ctx = ctx;
 
+    if (NULL != SM_instance->ActualState->onEntry)
+    {
+    	SM_instance->ActualState->onEntry(SM_instance);
+    }
+
     return SM_OK;
 }
 

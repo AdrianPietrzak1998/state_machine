@@ -91,7 +91,6 @@ SM_init(&sm, states, STATE_IDLE, STATE_END, NULL);
 while (1)
 {
     SM_Execution(&sm);
-    // Optional delay here
 }
 ```
 

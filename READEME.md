@@ -50,10 +50,12 @@ SM_tick_variable_register(&sys_tick);
 typedef enum {
     STATE_IDLE,
     STATE_RUN,
-    STATE_ERROR
+    STATE_ERROR,
+
+    STATE_END
 } MyStates;
 
-SM_state_t states[] = {
+SM_state_t states[STATE_END] = {
     { .onEntry = idle_entry, .onExec = idle_exec, .onExit = idle_exit },
     { .onEntry = run_entry,  .onExec = run_exec,  .onExit = run_exit },
     { .onEntry = err_entry,  .onExec = err_exec,  .onExit = err_exit }
@@ -80,7 +82,7 @@ void err_exit(SM_instance_t *me)  { /* Clear error */ }
 
 ```c
 SM_instance_t sm;
-SM_init(&sm, states, STATE_IDLE, 3, NULL);
+SM_init(&sm, states, STATE_IDLE, STATE_END, NULL);
 ```
 
 ### 4. Execute in your main loop
@@ -97,7 +99,7 @@ while (1)
 
 ```c
 SM_Trans(&sm, SM_TRANS_ENTRY_EXIT, STATE_RUN);  // Normal transition
-SM_Trans(&sm, SM_TRANS_FAST, STATE_ERROR);      // Fast transition without callbacks
+SM_Trans(&sm, SM_TRANS_FAST, STATE_ERROR);      // Fast transition without ENTRY and EXIT functions
 ```
 
 ### 6. Control execution flow

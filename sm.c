@@ -126,6 +126,8 @@ static SM_operate_status SM_state_is_in_range(const SM_instance_t *SM_instance, 
 SM_operate_status SM_init(SM_instance_t *SM_instance, SM_state_t *SM_states, uint16_t FirstState,
                           uint16_t NumberOfStates, void *ctx)
 {
+    assert(SM_tick != NULL);
+
     if ((SM_instance == NULL) || (SM_states == NULL) || (NumberOfStates <= FirstState) || (NumberOfStates == 0))
     {
         return SM_INIT_ERR;
@@ -137,6 +139,8 @@ SM_operate_status SM_init(SM_instance_t *SM_instance, SM_state_t *SM_states, uin
     SM_instance->ActualState = &SM_states[FirstState];
     SM_instance->NumberOfStates = NumberOfStates;
     SM_instance->ctx = ctx;
+
+    SM_instance->Time.TransTick = SM_GET_TICK;
 
     if (NULL != SM_instance->ActualState->onEntry)
     {
@@ -208,7 +212,7 @@ SM_operate_status SM_onTrans_callback_register(SM_instance_t *SM_instance, void 
  */
 SM_operate_status SM_Execution(SM_instance_t *SM_instance)
 {
-    if (SM_instance == NULL)
+    if (SM_instance == NULL || SM_instance->ActualState == NULL)
     {
         return SM_EXEC_NULL_PTR;
     }

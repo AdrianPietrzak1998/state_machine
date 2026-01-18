@@ -26,8 +26,9 @@
  * @brief Time base configuration for the state machine module.
  *
  * By default, the system tick type is `uint32_t`. To use a custom type, define `SM_TIME_BASE_TYPE_CUSTOM`
- * as the desired type (e.g. `uint16_t`, `int64_t`, etc.) and define the appropriate `_IS_*` macro
- * (e.g. `SM_TIME_BASE_TYPE_CUSTOM_IS_UINT16`) to allow the code to determine `SM_MAX_TIMEOUT`.
+ * as the desired type (e.g. `uint16_t`, `uint64_t`, etc.) and define the appropriate `_IS_*` macro
+ * (e.g. `SM_TIME_BASE_TYPE_CUSTOM_IS_UINT16`) to allow the code to determine `SM_MAX_TIMEOUT`. Only unsigned integer
+ * types are supported. variables are recommended for time bases for proper overflow handling.
  */
 #ifndef SM_TIME_BASE_TYPE_CUSTOM
 
@@ -46,14 +47,6 @@ typedef SM_TIME_BASE_TYPE_CUSTOM SM_TIME_t;
 #define SM_MAX_TIMEOUT UINT32_MAX
 #elif defined(SM_TIME_BASE_TYPE_CUSTOM_IS_UINT64)
 #define SM_MAX_TIMEOUT UINT64_MAX
-#elif defined(SM_TIME_BASE_TYPE_CUSTOM_IS_INT8)
-#define SM_MAX_TIMEOUT INT8_MAX
-#elif defined(SM_TIME_BASE_TYPE_CUSTOM_IS_INT16)
-#define SM_MAX_TIMEOUT INT16_MAX
-#elif defined(SM_TIME_BASE_TYPE_CUSTOM_IS_INT32)
-#define SM_MAX_TIMEOUT INT32_MAX
-#elif defined(SM_TIME_BASE_TYPE_CUSTOM_IS_INT64)
-#define SM_MAX_TIMEOUT INT64_MAX
 #else
 #error "SM_MAX_TIMEOUT: Unknown SM_TIME_BASE_TYPE_CUSTOM or missing _IS_* define"
 #endif

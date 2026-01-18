@@ -2,7 +2,7 @@
 
 Lightweight and flexible **state machine library** for embedded systems. Designed to efficiently manage states, transitions, delays, and execution flow on microcontrollers.  
 
-> **Important:** The state machine is **not reentrant**. All API functions must be called from the **same execution context** (e.g., the same task, main loop, or ISR). Calling from multiple contexts simultaneously will lead to undefined behavior.
+> **Important:** The state machine is **not reentrant**. All API functions must be called from the **same execution context** (e.g., the same task, main loop, or ISR). Calling from multiple contexts on **the same** instance simultaneously will lead to undefined behavior.
 
 ---
 

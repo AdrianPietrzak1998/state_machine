@@ -58,9 +58,8 @@ SM_operate_status SM_tick_variable_register(SM_TIME_t *Variable)
  * @param SM_instance Pointer to the state machine instance to reset (must not be NULL).
  * @return Always returns SM_OK.
  */
-static SM_operate_status SM_reset_instance(SM_instance_t *SM_instance)
+static void SM_reset_instance(SM_instance_t *SM_instance)
 {
-
     assert(SM_instance != NULL);
 
     SM_instance->SM_states = NULL;
@@ -85,8 +84,6 @@ static SM_operate_status SM_reset_instance(SM_instance_t *SM_instance)
     SM_instance->onTrans = NULL;
 
     SM_instance->ctx = NULL;
-
-    return SM_OK;
 }
 
 /**
@@ -100,7 +97,7 @@ static SM_operate_status SM_reset_instance(SM_instance_t *SM_instance)
  * @param SM_state Pointer to the state to check.
  * @return SM_OK if the state is within range; otherwise SM_WRONG_STATE.
  */
-static SM_operate_status SM_state_is_in_range(SM_instance_t *SM_instance, SM_state_t *SM_state)
+static SM_operate_status SM_state_is_in_range(const SM_instance_t *SM_instance, const SM_state_t *SM_state)
 {
     if (SM_state >= SM_instance->SM_states && SM_state < SM_instance->SM_states + SM_instance->NumberOfStates)
     {
@@ -134,10 +131,8 @@ SM_operate_status SM_init(SM_instance_t *SM_instance, SM_state_t *SM_states, uin
         return SM_INIT_ERR;
     }
 
-    if (SM_reset_instance(SM_instance) != SM_OK)
-    {
-        return SM_INIT_ERR;
-    }
+    SM_reset_instance(SM_instance);
+
     SM_instance->SM_states = SM_states;
     SM_instance->ActualState = &SM_states[FirstState];
     SM_instance->NumberOfStates = NumberOfStates;

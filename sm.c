@@ -217,7 +217,7 @@ SM_operate_status SM_Execution(SM_instance_t *SM_instance)
         return SM_EXEC_NULL_PTR;
     }
 
-    if (SM_instance->SM_control_flags.ExecBreak &&
+    if (0U != SM_instance->SM_control_flags.ExecBreak &&
         (SM_GET_TICK - SM_instance->Time.ExecBlockTick >= SM_instance->Time.ExecBlockTimeout))
     {
         SM_instance->SM_control_flags.ExecBreak = 0;
@@ -232,7 +232,7 @@ SM_operate_status SM_Execution(SM_instance_t *SM_instance)
     {
         if (((SM_instance->Time.DelayTime == 0) ||
              (SM_GET_TICK - SM_instance->Time.lastExecTick >= SM_instance->Time.DelayTime)) &&
-            !SM_instance->SM_control_flags.ExecBreak)
+            0U == SM_instance->SM_control_flags.ExecBreak)
         {
             if (SM_state_is_in_range(SM_instance, SM_instance->ActualState) != SM_OK)
             {

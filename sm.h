@@ -73,6 +73,7 @@ typedef SM_TIME_BASE_TYPE_CUSTOM SM_TIME_t;
  * - SM_TRANS_ERR: Transition error due to invalid configuration or state.
  * - SM_TRANS_LOCKED: Transition is locked and cannot be performed.
  * - SM_WRONG_STATE: Current state does not match the expected one.
+ * - SM_TRANS_NULL_PTR: A null pointer was provided for a transition operation.
  */
 typedef enum
 {
@@ -83,7 +84,8 @@ typedef enum
     SM_EXEC_NULL_PTR,
     SM_TRANS_ERR,
     SM_TRANS_LOCKED,
-    SM_WRONG_STATE
+    SM_WRONG_STATE,
+    SM_TRANS_NULL_PTR
 } SM_operate_status;
 
 /**

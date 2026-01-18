@@ -145,7 +145,7 @@ SM_operate_status SM_init(SM_instance_t *SM_instance, SM_state_t *SM_states, uin
 
     if (NULL != SM_instance->ActualState->onEntry)
     {
-    	SM_instance->ActualState->onEntry(SM_instance);
+        SM_instance->ActualState->onEntry(SM_instance);
     }
 
     return SM_OK;
@@ -213,6 +213,11 @@ SM_operate_status SM_onTrans_callback_register(SM_instance_t *SM_instance, void 
  */
 SM_operate_status SM_Execution(SM_instance_t *SM_instance)
 {
+    if (SM_instance == NULL)
+    {
+        return SM_EXEC_NULL_PTR;
+    }
+
     if (SM_instance->SM_control_flags.ExecBreak &&
         (SM_GET_TICK - SM_instance->Time.ExecBlockTick >= SM_instance->Time.ExecBlockTimeout))
     {
@@ -265,9 +270,15 @@ SM_operate_status SM_Execution(SM_instance_t *SM_instance)
  * @return SM_OK if the transition was successful.
  *         SM_TRANS_ERR if the requested state is invalid or transition failed.
  *         SM_TRANS_LOCKED if transitions are currently locked and cannot be performed.
+ *         SM_TRANS_NULL_PTR if the provided instance pointer is NULL.
  */
 SM_operate_status SM_Trans(SM_instance_t *SM_instance, SM_transision_mode mode, uint16_t State)
 {
+    if (SM_instance == NULL)
+    {
+        return SM_TRANS_NULL_PTR;
+    }
+
     if (SM_instance->NumberOfStates <= State)
     {
         return SM_TRANS_ERR;
@@ -275,7 +286,7 @@ SM_operate_status SM_Trans(SM_instance_t *SM_instance, SM_transision_mode mode, 
 
     if (SM_instance->SM_control_flags.TransitionLock)
     {
-        if (SM_GET_TICK - SM_instance->Time.ExecBlockTick >= SM_instance->Time.TransLockTimeout)
+        if (SM_GET_TICK - SM_instance->Time.TransLockTick >= SM_instance->Time.TransLockTimeout)
         {
             SM_instance->SM_control_flags.TransitionLock = 0;
         }
@@ -285,10 +296,12 @@ SM_operate_status SM_Trans(SM_instance_t *SM_instance, SM_transision_mode mode, 
         }
     }
 
+    SM_state_t *target_state = &SM_instance->SM_states[State];
+
     switch (mode)
     {
     case SM_TRANS_ENTRY_EXIT: {
-        if ((SM_instance->ActualState->onExit != NULL) || (SM_instance->ActualState->onEntry != NULL))
+        if ((SM_instance->ActualState->onExit != NULL) && (target_state->onEntry != NULL))
         {
             SM_instance->ActualState->onExit(SM_instance);
         }
@@ -298,19 +311,19 @@ SM_operate_status SM_Trans(SM_instance_t *SM_instance, SM_transision_mode mode, 
         }
 
         SM_instance->PrevState = SM_instance->ActualState;
-        SM_instance->ActualState = &SM_instance->SM_states[State];
+        SM_instance->ActualState = target_state;
         SM_instance->ActualState->onEntry(SM_instance);
         break;
     }
 
     case SM_TRANS_ENTRY: {
-        if (SM_instance->ActualState->onEntry == NULL)
+        if (target_state->onEntry == NULL)
         {
             return SM_TRANS_ERR;
         }
 
         SM_instance->PrevState = SM_instance->ActualState;
-        SM_instance->ActualState = &SM_instance->SM_states[State];
+        SM_instance->ActualState = target_state;
         SM_instance->ActualState->onEntry(SM_instance);
         break;
     }
@@ -326,13 +339,13 @@ SM_operate_status SM_Trans(SM_instance_t *SM_instance, SM_transision_mode mode, 
         }
 
         SM_instance->PrevState = SM_instance->ActualState;
-        SM_instance->ActualState = &SM_instance->SM_states[State];
+        SM_instance->ActualState = target_state;
         break;
     }
 
     case SM_TRANS_FAST: {
         SM_instance->PrevState = SM_instance->ActualState;
-        SM_instance->ActualState = &SM_instance->SM_states[State];
+        SM_instance->ActualState = target_state;
         break;
     }
 

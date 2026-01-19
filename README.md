@@ -1,5 +1,13 @@
 # Embedded State Machine Library
 
+[![License: MPL 2.0](https://img.shields.io/badge/License-MPL_2.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
+[![C99](https://img.shields.io/badge/C-99-blue.svg)](https://en.wikipedia.org/wiki/C99)
+[![Platform](https://img.shields.io/badge/platform-embedded-orange.svg)](https://github.com/AdrianPietrzak1998/state_machine)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
+[![GitHub stars](https://img.shields.io/github/stars/AdrianPietrzak1998/state_machine.svg?style=social&label=Star)](https://github.com/AdrianPietrzak1998/state_machine)
+[![GitHub forks](https://img.shields.io/github/forks/AdrianPietrzak1998/state_machine.svg?style=social&label=Fork)](https://github.com/AdrianPietrzak1998/state_machine/fork)
+
+
 Lightweight and flexible **state machine library** for embedded systems. Designed to efficiently manage states, transitions, delays, and execution flow on microcontrollers.  
 
 > **Important:** The state machine is **not reentrant**. All API functions must be called from the **same execution context** (e.g., the same task, main loop, or ISR). Calling from multiple contexts on **the same** instance simultaneously will lead to undefined behavior.

@@ -86,6 +86,11 @@ static void SM_reset_instance(SM_instance_t *SM_instance)
     SM_instance->ctx = NULL;
 }
 
+static SM_TIME_t SM_tick_elapsed(SM_TIME_t current_tick, SM_TIME_t reference_tick)
+{
+    return (SM_TIME_t)(current_tick - reference_tick);
+}
+
 /**
  * @brief Checks if the given state pointer is within the valid range of states.
  *
@@ -217,28 +222,35 @@ SM_operate_status SM_Execution(SM_instance_t *SM_instance)
         return SM_EXEC_NULL_PTR;
     }
 
-    if (0U != SM_instance->SM_control_flags.ExecBreak &&
-        (SM_GET_TICK - SM_instance->Time.ExecBlockTick >= SM_instance->Time.ExecBlockTimeout))
-    {
-        SM_instance->SM_control_flags.ExecBreak = 0;
+    SM_TIME_t current_tick = SM_GET_TICK;
 
-        if (SM_instance->onBreakTimeout != NULL)
+    if (0U != SM_instance->SM_control_flags.ExecBreak)
+    {
+        SM_TIME_t exec_block_delta = SM_tick_elapsed(current_tick, SM_instance->Time.ExecBlockTick);
+
+        if (exec_block_delta >= SM_instance->Time.ExecBlockTimeout)
         {
-            SM_instance->onBreakTimeout(SM_instance);
+            SM_instance->SM_control_flags.ExecBreak = 0;
+
+            if (SM_instance->onBreakTimeout != NULL)
+            {
+                SM_instance->onBreakTimeout(SM_instance);
+            }
         }
     }
 
     if (SM_instance->ActualState->onExec != NULL)
     {
-        if (((SM_instance->Time.DelayTime == 0) ||
-             (SM_GET_TICK - SM_instance->Time.lastExecTick >= SM_instance->Time.DelayTime)) &&
-            0U == SM_instance->SM_control_flags.ExecBreak)
+        SM_TIME_t exec_delay_delta = SM_tick_elapsed(current_tick, SM_instance->Time.lastExecTick);
+
+        if (((SM_instance->Time.DelayTime == 0) || (exec_delay_delta >= SM_instance->Time.DelayTime)) &&
+            (0U == SM_instance->SM_control_flags.ExecBreak))
         {
             if (SM_state_is_in_range(SM_instance, SM_instance->ActualState) != SM_OK)
             {
                 return SM_WRONG_STATE;
             }
-            SM_instance->Time.lastExecTick = SM_GET_TICK;
+            SM_instance->Time.lastExecTick = current_tick;
             SM_instance->Time.DelayTime = 0;
             SM_instance->ActualState->onExec(SM_instance);
             SM_instance->Stats.StateExecutionCounter++;
@@ -285,7 +297,10 @@ SM_operate_status SM_Trans(SM_instance_t *SM_instance, SM_transision_mode mode, 
 
     if (SM_instance->SM_control_flags.TransitionLock)
     {
-        if (SM_GET_TICK - SM_instance->Time.TransLockTick >= SM_instance->Time.TransLockTimeout)
+        SM_TIME_t current_tick = SM_GET_TICK;
+        SM_TIME_t trans_lock_delta = SM_tick_elapsed(current_tick, SM_instance->Time.TransLockTick);
+
+        if (trans_lock_delta >= SM_instance->Time.TransLockTimeout)
         {
             SM_instance->SM_control_flags.TransitionLock = 0;
         }
@@ -508,7 +523,7 @@ SM_TIME_t SM_get_time_in_state(const SM_instance_t *SM_instance)
         return SM_MAX_TIMEOUT;
     }
 
-    return (SM_GET_TICK - SM_instance->Time.TransTick);
+    return SM_tick_elapsed(SM_GET_TICK, SM_instance->Time.TransTick);
 }
 
 /**
